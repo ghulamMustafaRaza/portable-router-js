@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <button onclick="router.goBack()">back</button >
+    <button onclick="router.goForward()">forward</button >
+    <br/>
+    <br/>
+    <a href="/home" class="router-link" >('/home')</a>
+    <a href="/home/about" class="router-link" >('/home/about')</a>
+    <a href="/home/contect/phone" class="router-link" >('/home/contect/phone')</a>
+    <a href="/products" class="router-link" >('/products')</a>
+    <div id="app"></div>
+    <script src="/router.js"></script>
+    <script src='/app.js'></script>
+</body>
+
+</html>

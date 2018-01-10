@@ -1,0 +1,155 @@
+        (function () {
+            window.onpopstate = (a) => {
+                console.log(a.target.location.pathname)
+                router.applyRoute(a.target.location.pathname)
+            }
+            window.onpushstate = (a) => {
+                console.log(a.target.location.pathname)
+                router.applyRoute(a.target.location.pathname)
+            }
+            window.changeRoute = (r) => {
+                router.applyRoute(r)
+                history.pushState({}, r, r)
+            }
+            window.onload = () => {
+                router.applyRoute(window.location.pathname)
+            }
+            var Route = function () {
+                this.route = arguments[0].route;
+                this.fn = arguments[0].fn;
+                this.scope = arguments[0].scope ? arguments[0].scope : null;
+                this.rules = arguments[0].rules ? arguments[0].rules : {};
+
+                this.routeArguments = Array();
+                this.optionalRouteArguments = Array();
+
+                //Create the route arguments if they exist
+                this.routeParts = this.route.split("/");
+                for (var i = 0, j = this.routeParts.length; i < j; i++) {
+                    var rPart = this.routeParts[i]
+
+                    //See if there are pseudo macro's in the route
+
+                    //will fetch all {id} parts of the route. So the manditory parts
+                    if (rPart.substr(0, 1) == "{" && rPart.substr(rPart.length - 1, 1) == "}") {
+                        var rKey = rPart.substr(1, rPart.length - 2);
+                        this.optionalRouteArguments.push(rKey);
+                    }
+                    //will fetch all :id: parts of the route. So the optional parts
+                    if (rPart.substr(0, 1) == ":") {
+                        var rKey = rPart.substr(1, rPart.length - 2);
+                        this.routeArguments.push(rKey);
+                    }
+                }
+            }
+            Route.prototype.matches = function (route) {
+                //We'd like to examen every individual part of the incoming route
+                var incomingRouteParts = route.split("/");
+                //This might seem strange, but assuming the route is correct
+                //makes the logic easier, than assuming it is wrong.    
+                var routeMatches = true;
+                //if the route is shorter than the route we want to check it against we can immidiatly stop.
+                if (incomingRouteParts.length < this.routeParts.length - this.optionalRouteArguments.length) {
+                    routeMatches = false;
+                    // console.log(1)
+                }
+                else {
+                    // console.log(2)
+                    let a = incomingRouteParts
+                    for (var i = 0, j = a.length; i < j && routeMatches; i++) {
+                        //Lets cache the variables, to prevent variable lookups by the javascript engine
+                        var iRp = a[i];//current incoming Route Part
+                        var rP = this.routeParts[i];//current routePart                     
+                        if (typeof rP == 'undefined') {
+                            // console.log(20)
+                            //The route almost certainly doesn't match it's longer than the route to check against
+                            routeMatches = false;
+                        }
+                        else {
+                            // console.log(21)
+                            var cP0 = rP.substr(0, 1); //char at postion 0
+                            var cPe = rP.substr(rP.length - 1, 1);//char at last postion                   
+                            if ((cP0 != "{" && cP0 != ":") && (cPe != "}")) {
+                                // console.log(210, cP0, cPe, rP, iRp, incomingRouteParts)
+                                //This part of the route to check against is not  a pseudo macro, so it has to match exactly
+                                if (iRp != rP) {
+                                    routeMatches = false;
+                                }
+                            }
+                            else {
+                                // console.log(211)
+                                //Since this is a pseudo macro and there was a value at this place. The route is correct.
+                                routeMatches = true;
+                            }
+                        }
+                    }
+                }
+                // console.log(routeMatches, route, this)
+
+                return routeMatches;
+            }
+            Route.prototype.getArgumentsValues = function (route) {
+                //Split the incoming route
+                var rRouteParts = route.split("/");
+                //Create an array for the values
+                var rArray = new Object();
+                for (var i = 0, j = this.routeParts.length; i < j; i++) {
+                    var rP = this.routeParts[i];//current routePart
+                    var cP0 = rP.substr(0, 1); //char at postion 0
+                    var cPe = rP.substr(rP.length - 1, 1);//char at last postion
+                    if ((cP0 == "{" && cPe == "}") || cP0 == ":") {
+                        let key = cP0 == ":" ? rP.substr(1) : rP.substr(1, rP.length - 2)
+                        console.log(key, cP0 == ":", rP.substr(1), rP.substr(1, rP.length - 2))
+                        //if this part of the route was a pseudo macro,
+                        //either manditory or optional add this to the array
+                        rArray[key] = rRouteParts[i];
+                    }
+                }
+                return rArray;
+            }
+            var Router = function () {
+                this.routes = new Array();
+            }
+            Router.prototype = {
+                //Here we use a somewhat different style of create the prototype
+                //than for the Route prototype. Both ways are valid. 
+                //I'm using them mixed here, but It's probably wise not to do that.
+                //And stick to a single pattern. Here I'm doing it to show both possibilities
+                registerRoute: function (route, fn, paramObject) {
+                    //We'll have route and function as named parameters
+                    //and all the future optional parameters in a single object.
+                    //Right now we just have scope as a optional parameters
+                    var scope = paramObject && paramObject.scope || {};
+                    return this.routes[this.routes.length] = new Route({
+                        route: route,
+                        fn: fn,
+                        scope: scope
+                    });
+                },
+                applyRoute: function (route) {
+                    //iterate all routes
+                    let matched = false
+                    console.log(route)
+                    for (var i = 0, j = this.routes.length; i < j; i++) {
+                        var sRoute = this.routes[i];
+                        //match route
+                        if (sRoute.matches(route)) {
+                            //if true call callback function with the proper scope
+                            let html = sRoute.fn.apply(sRoute.scope, [sRoute.getArgumentsValues(route), history]);
+                            document.getElementById('app').innerHTML = html
+                            matched = true
+                        }
+                    }
+                    if (!matched) {
+                        document.getElementById('app').innerHTML = ''
+                        console.log('nf')
+                    }
+                }
+            }
+
+            //We'll create an alias for router in the window object
+            window["Router"] = Router;
+
+            //We'll create an instance of router in the window object
+            window["router"] = new Router();
+        })();

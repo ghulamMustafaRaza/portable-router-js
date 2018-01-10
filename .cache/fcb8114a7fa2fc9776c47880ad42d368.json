@@ -1,0 +1,1 @@
+{"dependencies":[{"name":"./router","loc":{"line":3,"column":23}}],"generated":{"js":"\"use strict\";exports.__esModule=!0;var e=require(\"./router\");exports.default=e.default;"},"hash":"21e0f3d771b07209830ee7a12f2b9b5f"}

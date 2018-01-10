@@ -1,0 +1,1 @@
+{"dependencies":[{"name":"./router","loc":{"line":3,"column":23}}],"generated":{"js":"\"use strict\";\nexports.__esModule = true;\nvar router_1 = require(\"./router\");\nexports[\"default\"] = router_1[\"default\"];\n"},"hash":"d47c1632b3c0e2b8caa6062a43312cf5"}

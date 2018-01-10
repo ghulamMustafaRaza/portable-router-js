@@ -1,0 +1,25 @@
+{
+  "name": "router",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run browser-build && rm -rf ./dist/index.js && parcel build src/index.ts -d ./dist",
+    "browser-build": "npm run browser-build-m && npm run browser-build-nm",
+    "debug": "npm run browser-build-m && cp ./dist/router.browser.min.js ./example/router.js",
+    "browser-build-nm": "rm -rf ./dist/router.browser.js && parcel build src/browser.ts --no-minify -d ./dist && mv ./dist/browser.js ./dist/router.browser.js",
+    "browser-build-m": "rm -rf ./dist/router.browser.min.js && parcel build src/browser.ts -d ./dist && mv ./dist/browser.js ./dist/router.browser.min.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^4.15.0",
+    "parcel-bundler": "^1.4.1",
+    "typescript": "^2.6.2"
+  },
+  "dependencies": {}
+}
